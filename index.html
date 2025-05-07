@@ -1,8 +1,9 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>중견기업 지원자격 확인기</title>
+  <title>2025년 중견기업 글로벌 지원사업 신청자격 확인</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 30px; background-color: #f9f9f9; }
     .form-container {
@@ -13,9 +14,7 @@
       margin: auto;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-    h2 {
-      text-align: center;
-    }
+    h2 { text-align: center; }
     .form-row {
       display: flex;
       flex-direction: column;
@@ -49,6 +48,7 @@
       font-weight: bold;
       text-align: center;
     }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
@@ -81,28 +81,27 @@
     </div>
 
     <div class="form-row">
-      <label for="supportHistory">지원사업 지원이력 (0~5):</label>
-      <select id="supportHistory">
-        <option value="0">0</option>
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-      </select>
+      <label for="supportHistory">지원사업 총 지원이력 (0~10):</label>
+      <input type="number" id="supportHistory" min="0" max="10" onchange="toggleDetailInputs()" />
     </div>
 
-    <div class="form-row">
-      <label for="globalStepHistory">중견글로벌 단계 참여이력 (0~5, 선택):</label>
-      <select id="globalStepHistory">
-        <option value="">선택 안 함</option>
-        <option value="0">0</option>
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-      </select>
+    <div id="detailSupportInputs" class="hidden">
+      <div class="form-row">
+        <label for="naesu">내수중견 지원 횟수:</label>
+        <input type="number" id="naesu" min="0" max="10" />
+      </div>
+      <div class="form-row">
+        <label for="jumping">Jumping중견글로벌 지원 횟수:</label>
+        <input type="number" id="jumping" min="0" max="10" />
+      </div>
+      <div class="form-row">
+        <label for="junggyun">중견글로벌 지원 횟수:</label>
+        <input type="number" id="junggyun" min="0" max="10" />
+      </div>
+      <div class="form-row">
+        <label for="post">Post중견글로벌 지원 횟수:</label>
+        <input type="number" id="post" min="0" max="10" />
+      </div>
     </div>
 
     <button onclick="checkEligibility()">지원자격 확인하기</button>
@@ -110,27 +109,64 @@
   </div>
 
   <script>
+    function toggleDetailInputs() {
+      const supportHistory = Number(document.getElementById('supportHistory').value);
+      const detailDiv = document.getElementById('detailSupportInputs');
+      detailDiv.classList.toggle('hidden', supportHistory < 1);
+    }
+
     function checkEligibility() {
       const sales = Number(document.getElementById('sales').value);
       const exportAmt = Number(document.getElementById('export').value);
       const exchange = Number(document.getElementById('exchange').value);
       const firmType = document.getElementById('firmType').value;
       const supportHistory = Number(document.getElementById('supportHistory').value);
-      const globalStepHistory = Number(document.getElementById('globalStepHistory').value || 0);
+
+      if (supportHistory >= 10) {
+        document.getElementById('result').innerText = "총 지원이력이 10회를 초과하여 지원이 불가능합니다.";
+        return;
+      }
 
       const exportRate = (exportAmt * exchange) / sales;
 
-      const D8 = ((firmType === '중견기업' && exportRate < 0.1 && supportHistory < 3) ||
-                  (firmType === '중견기업' && exportAmt < 10000000 && supportHistory < 3)) ? 'O' : 'X';
+      const naesu = Number(document.getElementById('naesu')?.value || 0);
+      const jumping = Number(document.getElementById('jumping')?.value || 0);
+      const junggyun = Number(document.getElementById('junggyun')?.value || 0);
+      const post = Number(document.getElementById('post')?.value || 0);
 
-      const D9 = (firmType === '예비중견기업' && supportHistory < 5) ? 'O' : 'X';
-      const D10 = ((firmType === '중견기업' || firmType === 'WC 300/WC Plus') && supportHistory < 5) ? 'O' : 'X';
-      const D11 = (globalStepHistory === 5 && supportHistory < 5) ? 'O' : 'X';
+      let availableStages = [];
 
-      const eligible = (D8 === 'O' || D9 === 'O' || D10 === 'O' || D11 === 'O') ? '지원 가능합니다' : '지원 불가능합니다';
-      const recommended = D8 === 'O' ? '내수중견' : D9 === 'O' ? 'Jumping중견글로벌' : D10 === 'O' ? '중견글로벌' : D11 === 'O' ? 'Post 중견글로벌' : '';
+      // 자격 조건
+      const canNaesu = firmType === '중견기업' && supportHistory < 10 &&
+        ((exportRate < 0.1 || exportAmt < 10000000) && naesu < 3);
 
-      const resultMsg = eligible + (recommended ? (' / ' + recommended + ' 단계 지원하는 것을 추천드립니다.') : '');
+      const canJumping = (firmType === '예비중견기업' || firmType === '중견기업') &&
+        supportHistory < 10 && jumping < 5;
+
+      const canJunggyun = (firmType === '중견기업' || firmType === 'WC 300/WC Plus') &&
+        supportHistory < 10 && junggyun < 5;
+
+      const canPost = supportHistory < 10 && post < 5 && junggyun >= 5;  // 수정된 부분
+
+      if (canNaesu && naesu === 0 && jumping === 0 && junggyun === 0 && post === 0) {
+        availableStages.push('내수중견');
+      }
+
+      if (canJumping && (naesu > 0 || jumping === 0) && junggyun === 0 && post === 0) {
+        availableStages.push('Jumping중견글로벌');
+      }
+
+      if (canJunggyun && (jumping > 0 || junggyun === 0) && post === 0) {
+        availableStages.push('중견글로벌');
+      }
+
+      if (canPost) {
+        availableStages.push('Post중견글로벌');
+      }
+
+      const resultMsg = availableStages.length > 0
+        ? '지원 가능합니다 / ' + availableStages[0] + ' 단계 지원을 추천드립니다.'
+        : '지원 불가능합니다';
 
       document.getElementById('result').innerText = resultMsg;
     }
