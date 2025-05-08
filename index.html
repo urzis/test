@@ -75,7 +75,7 @@
       <label for="firmType">기업 구분:</label>
       <select id="firmType">
         <option value="중견기업">중견기업</option>
-        <option value="예비중견기업">예비중견기업</option>
+        <option value="예비중견기업/강소기업">예비중견기업/강소기업</option>
         <option value="WC 300/WC Plus">WC 300/WC Plus</option>
       </select>
     </div>
@@ -143,7 +143,7 @@
         naesu < 3 && jumping === 0 && junggyun === 0 && post === 0 &&
         supportHistory === 0;
 
-      const canJumping = (firmType === '예비중견기업' || firmType === '중견기업') &&
+      const canJumping = (firmType === '예비중견기업/강소기업' || firmType === '중견기업') &&
         supportHistory < 10 && jumping < 5;
 
       const canJunggyun = (firmType === '중견기업' || firmType === 'WC 300/WC Plus') &&
